@@ -1,8 +1,8 @@
-(defproject sundbry/autobahn.cljs "0.1.1-SNAPSHOT"
+(defproject sundbry/autobahn.cljs "0.1.2-SNAPSHOT"
   :description "Clojurescript bindings for autobahn.js"
-  :plugins [[lein-cljsbuild "1.0.4"]]
+  :plugins [[lein-cljsbuild "1.0.6"]]
   :repositories [["snapshots" {:url "http://mises.etheride.com:8081/nexus/content/repositories/snapshots"}]]
-  :dependencies []
+  :dependencies [[cljsjs/autobahnjs "0.9.9-0"]]
   :source-paths ["src"]
   :cljsbuild {:builds
               [{:source-paths ["src"]
@@ -10,11 +10,11 @@
                 :compiler
                 {:output-to "resources/autobahn_cljs.js"
                  :output-dir "build"
-                 :optimizations :whitespace
-                 :preamble ["autobahn.min.js"]
+                 :optimizations :advanced
+                 ;:preamble ["autobahn.min.js"]
                  }}]}
   :profiles
   {:dev
    {:dependencies [[org.clojure/clojure "1.6.0"]
-                   [org.clojure/clojurescript "0.0-2760"]
-                   [org.clojure/core.async "0.1.346.0-17112a-alpha"]]}})
+                   [org.clojure/clojurescript "1.7.170"]
+                   [org.clojure/core.async "0.2.374"]]}})

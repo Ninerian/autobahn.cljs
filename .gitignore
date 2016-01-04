@@ -11,3 +11,6 @@ pom.xml.asc
 *.swp
 *.swo
 /resources/autobahn_cljs.js
+
+/.idea
+*.iml

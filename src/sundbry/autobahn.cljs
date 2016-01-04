@@ -1,22 +1,23 @@
 (ns ^{:doc "Autobahn JS interface"}
   sundbry.autobahn
   (:require
-   [cljs.core.async :as async])
-  (:require-macros 
+    [cljsjs.autobahn]
+    [cljs.core.async :as async])
+  (:require-macros
     [cljs.core.async.macros :refer [go go-loop]]))
 
 (def ^:private ab js/autobahn)
 
-(defn- autobahn-debug 
+(defn- autobahn-debug
   "Enable/disable Autobahn debug logging"
   [enable?]
   (set! js/AUTOBAHN_DEBUG enable?))
 
-(defn create 
+(defn create
   "Create a new proxy to a node"
-  [{:keys [on-open on-close debug?] :as conf}]
+  [{:keys [on-open on-close debug? authenticate?] :as conf}]
   (let [instance
-        (merge 
+        (merge
           {:debug? true
            :ws-uri nil
            :realm "default"
@@ -25,15 +26,19 @@
            :on-open nil
            :on-close nil}
           conf)
-        conn (ab.Connection. (clj->js {:url (:ws-uri instance)
-                                       :realm (:realm instance)}))
+        conn (ab.Connection. (clj->js (merge {:url   (:ws-uri instance)
+                                              :realm (:realm instance)
+                                              :onchallenge (:on-challenge instance)}
+                                             (if authenticate?
+                                               (apply dissoc (:auth-details conf) [:secret]))
+                                             )))
         instance (assoc instance :connection conn)
         wrap-on-open (fn [session]
                        (reset! (:session instance) session)
                        (when (some? on-open)
                          (on-open session)))
         wrap-on-close (fn [reason message]
-                        (reset! (:session instance) nil)  
+                        (reset! (:session instance) nil)
                         (when (some? on-close)
                           (on-close reason message)))]
     (set! (.-onopen conn) wrap-on-open)
@@ -53,11 +58,11 @@
 	(.close (:connection proxy))
 	proxy)
 
-(defn- default-error-handler 
+(defn- default-error-handler
   [error]
 	(.log js/console (str "[remote error] " (.-message error))))
 
-(defn- parse-json-error 
+(defn- parse-json-error
   "Returns a javascript Error instance from an Autobahn json error"
   [json-error]
 	(new js/Error (.-error json-error)))
@@ -68,9 +73,9 @@
   @param cmd (list function args...)
   @param cb-success (json-result)
   @param cb-error (json-error)"
-  ([proxy rpc-uri args] 
+  ([proxy rpc-uri args]
    (call proxy rpc-uri args {} nil))
-  ([proxy rpc-uri args options] 
+  ([proxy rpc-uri args options]
    (call proxy rpc-uri args options nil))
   ([proxy rpc-uri args options {:keys [success error progress]
                                 :or {success (constantly nil)
