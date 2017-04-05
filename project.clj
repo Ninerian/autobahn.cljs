@@ -10,9 +10,9 @@
                 :compiler
                 {:output-to "resources/autobahn_cljs.js"
                  :output-dir "build"
-                 :optimizations :advanced
+                 :optimizations :advanced}}]}
                  ;:preamble ["autobahn.min.js"]
-                 }}]}
+
   :profiles
   {:dev
    {:dependencies [[org.clojure/clojure "1.6.0"]

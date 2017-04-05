@@ -30,13 +30,13 @@
                                               :realm (:realm instance)
                                               :onchallenge (:on-challenge instance)}
                                              (if authenticate?
-                                               (apply dissoc (:auth-details conf) [:secret]))
-                                             )))
+                                               (apply dissoc (:auth-details conf) [:secret])))))
+
         instance (assoc instance :connection conn)
-        wrap-on-open (fn [session]
+        wrap-on-open (fn [session details]
                        (reset! (:session instance) session)
                        (when (some? on-open)
-                         (on-open session)))
+                         (on-open session details)))
         wrap-on-close (fn [reason message]
                         (reset! (:session instance) nil)
                         (when (some? on-close)
@@ -54,18 +54,18 @@
 
 (defn disconnnect
   [proxy]
-	(.log js/console (str "Disconnecting from " (:ws-uri proxy)))
-	(.close (:connection proxy))
-	proxy)
+  (.log js/console (str "Disconnecting from " (:ws-uri proxy)))
+  (.close (:connection proxy))
+  proxy)
 
 (defn- default-error-handler
   [error]
-	(.log js/console (str "[remote error] " (.-message error))))
+  (.log js/console (str "[remote error] " (.-message error))))
 
 (defn- parse-json-error
   "Returns a javascript Error instance from an Autobahn json error"
   [json-error]
-	(new js/Error (.-error json-error)))
+  (new js/Error (.-error json-error)))
 
 (defn call
   "Execute an RPC call
