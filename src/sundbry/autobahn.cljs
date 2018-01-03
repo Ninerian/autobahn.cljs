@@ -1,7 +1,7 @@
 (ns ^{:doc "Autobahn JS interface"}
   sundbry.autobahn
   (:require
-    [cljsjs.autobahn]
+    [autobahn :as Autobahn]
     [cljs.core.async :as async])
   (:require-macros
     [cljs.core.async.macros :refer [go go-loop]]))
@@ -26,11 +26,11 @@
            :on-open nil
            :on-close nil}
           conf)
-        conn (ab.Connection. (clj->js (merge {:url   (:ws-uri instance)
-                                              :realm (:realm instance)
-                                              :onchallenge (:on-challenge instance)}
-                                             (if authenticate?
-                                               (apply dissoc (:auth-details conf) [:secret])))))
+        conn (Autobahn/Connection (clj->js (merge {:url   (:ws-uri instance)
+                                                   :realm (:realm instance)
+                                                   :onchallenge (:on-challenge instance)}
+                                                  (if authenticate?
+                                                    (apply dissoc (:auth-details conf) [:secret])))))
 
         instance (assoc instance :connection conn)
         wrap-on-open (fn [session details]
@@ -45,6 +45,17 @@
     (set! (.-onclose conn) wrap-on-close)
     (autobahn-debug (boolean debug?))
     instance))
+
+(defn auth-cra-sign
+  [secret challenge]
+  (Autobahn/auth_cra.sign secret challenge))
+
+(defn wamp-cra-sign
+  [method extra secret]
+  (when (= method "wampcra")
+    (if-let [challenge (aget extra "challenge")]
+      (auth-cra-sign secret challenge)
+      (throw "Cannot authenticate using wampcra."))))
 
 (defn connect
   [proxy]
